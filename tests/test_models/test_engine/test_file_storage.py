@@ -2,6 +2,8 @@
 """ Module for testing file storage"""
 import unittest
 from models.base_model import BaseModel
+from models.city import City
+from models.state import State
 from models import storage
 import os
 
@@ -9,6 +11,9 @@ import os
 class test_fileStorage(unittest.TestCase):
     """ Class to test the file storage method """
 
+    @unittest.skipIf(
+        "HBNB_TYPE_STORAGE" in os.environ and
+        os.environ['HBNB_TYPE_STORAGE'] == "db", "db engine")
     def setUp(self):
         """ Set up test environment """
         del_list = []
@@ -24,6 +29,69 @@ class test_fileStorage(unittest.TestCase):
         except:
             pass
 
+    @unittest.skipIf(
+        "HBNB_TYPE_STORAGE" in os.environ and
+        os.environ['HBNB_TYPE_STORAGE'] == "db", "db engine")
+    def test_delete_method(self):
+        """ New object is correctly added to __objects """
+        new = City()
+        new.name = "San Francisco"
+        new.save()
+        d = storage._FileStorage__objects
+        self.assertEqual(len(d), 1)
+        storage.delete(new)
+        d = storage._FileStorage__objects
+        self.assertEqual(len(d), 0)
+
+    @unittest.skipIf(
+        "HBNB_TYPE_STORAGE" in os.environ and
+        os.environ['HBNB_TYPE_STORAGE'] == "db", "db engine")
+    def test_delete_with_None_method(self):
+        """ New object is correctly added to __objects """
+        new = City()
+        new.name = "San Francisco"
+        new.save()
+        d = storage._FileStorage__objects
+        self.assertEqual(len(d), 1)
+        storage.delete(None)
+        d = storage._FileStorage__objects
+        self.assertEqual(len(d), 1)
+
+    def test_all_with_None(self):
+        """ New object is correctly added to __objects """
+        c1 = City()
+        c2 = City()
+        c1.name = "San Francisco"
+        c2.name = "Paris"
+        c1.save()
+        c2.save()
+        d = storage._FileStorage__objects
+        t = storage.all(None)
+        self.assertEqual(len(d), len(t))
+
+    def test_all_with_Class(self):
+        """ New object is correctly added to __objects """
+        c1 = City()
+        c2 = City()
+        s = State()
+        c1.name = "San Francisco"
+        c2.name = "Paris"
+        s.name = "California"
+        c1.save()
+        c2.save()
+        s.save()
+        d = storage._FileStorage__objects
+        t = storage.all(City)
+        self.assertEqual(len(t), 2)
+        self.assertEqual(len(d), 3)
+
+    def test_new(self):
+        """ New object is correctly added to __objects """
+        new = BaseModel()
+        for obj in storage.all().values():
+            temp = obj
+        self.assertTrue(temp is obj)
+
     def test_obj_list_empty(self):
         """ __objects is initially empty """
         self.assertEqual(len(storage.all()), 0)
@@ -31,6 +99,7 @@ class test_fileStorage(unittest.TestCase):
     def test_new(self):
         """ New object is correctly added to __objects """
         new = BaseModel()
+        new.save()
         for obj in storage.all().values():
             temp = obj
         self.assertTrue(temp is obj)
@@ -63,10 +132,10 @@ class test_fileStorage(unittest.TestCase):
     def test_reload(self):
         """ Storage file is successfully loaded to __objects """
         new = BaseModel()
-        storage.save()
-        storage.reload()
-        for obj in storage.all().values():
-            loaded = obj
+        new.save()
+        # storage.reload()
+        for k, v in storage.all().items():
+            loaded = v
         self.assertEqual(new.to_dict()['id'], loaded.to_dict()['id'])
 
     def test_reload_empty(self):
@@ -97,6 +166,7 @@ class test_fileStorage(unittest.TestCase):
     def test_key_format(self):
         """ Key is properly formatted """
         new = BaseModel()
+        new.save()
         _id = new.to_dict()['id']
         for key in storage.all().keys():
             temp = key
