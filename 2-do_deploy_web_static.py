@@ -31,6 +31,6 @@ def do_deploy(archive_path):
         run('rm -rf /data/web_static/current')
         c5 = 'ln -s /data/web_static/releases/{}/ {}'
         run(c5.format(archive_path[9:-4], '/data/web_static/current'))
-        return True
+        return Tru
     except:
         return False
