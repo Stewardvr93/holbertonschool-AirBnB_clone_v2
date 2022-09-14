@@ -52,7 +52,7 @@ def do_deploy(archive_path):
         run(c5.format(archive_path[9:-4], '/data/web_static/current'))
         return True
     except:
-        return Fals
+        return False
 
 
 path = do_pack()
