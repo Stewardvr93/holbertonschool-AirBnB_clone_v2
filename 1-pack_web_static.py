@@ -26,4 +26,4 @@ def do_pack():
         # return 'versions/{}'.format(n)
         return n
     except:
-        return None
+        return Non
