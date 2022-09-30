@@ -10,14 +10,13 @@ class FileStorage:
 
     def all(self, cls=None):
         """Returns a dictionary of models currently in storage"""
-        d = {}
-        if cls is None:
-            return FileStorage.__objects
-        else:
-            for k, v in FileStorage.__objects.items():
-                if k.startswith(cls.__name__):
-                    d[k] = v
-        return d
+        if cls is not None:
+            new_dict = {}
+            for key, value in self.__objects.items():
+                if type(value) == cls:
+                    new_dict.update({key: value})
+            return new_dict
+        return self.__objects
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
@@ -31,17 +30,6 @@ class FileStorage:
             for key, val in temp.items():
                 temp[key] = val.to_dict()
             json.dump(temp, f)
-
-    def delete(self, obj=None):
-        """  delete obj from __objects if it’s inside """
-        if obj:
-            key = obj.__class__.__name__ + '.' + obj.id
-            if FileStorage.__objects.get(key, "not found") != "not found":
-                del FileStorage.__objects[key]
-
-    def close(self):
-        """ deserializing the JSON file to objects """
-        self.reload()
 
     def reload(self):
         """Loads storage dictionary from file"""
@@ -63,6 +51,17 @@ class FileStorage:
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
                 for key, val in temp.items():
-                        self.all()[key] = classes[val['__class__']](**val)
+                    self.all()[key] = classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
+
+    def delete(self, obj=None):
+        """ deletes an object if is not None"""
+        if obj is not None:
+            name = obj.__class__.__name__ + '.' + obj.id
+            if name in self.__objects:
+                del self.__objects[name]
+
+    def close(self):
+        """method for deserializing the JSON file to objects"""
+        self.reload()
